@@ -12,15 +12,12 @@ st.set_page_config(page_title="Expenditure Dashboard",
 st.title(":soccer: Football Expenditure Dashboard")
 st.markdown("##")
 
-pearsonHelpText = (""" The Pearson Coefficient is a type of **correlation coefficient** that represents the relationship between two variables, measured on the same scale.
-            For this example, both income and expenditure are measured in Euros, so the Pearson Coefficient is relevant here.
-            The coefficient ranges from -1 to 1, where -1 is a perfectly negative correlation and 1 is a perfectly positive correlation.
-            """)
 
 # FILTERS AND NAVIGATION
 
 
 def dataVis():
+
     st.sidebar.header("Please Filter Here:")
 
     season = st.sidebar.multiselect(
@@ -56,6 +53,11 @@ def dataVis():
         orientation="horizontal"
     )
     st.markdown("---")
+
+    pearsonHelpText = (""" The Pearson Coefficient is a type of **correlation coefficient** that represents the relationship between two variables, measured on the same scale.
+            For this example, both income and expenditure are measured in Euros, so the Pearson Coefficient is relevant here.
+            The coefficient ranges from -1 to 1, where -1 is a perfectly negative correlation and 1 is a perfectly positive correlation.
+            """)
 
     # GENERAL DATA DASHBOARD (BOTH LEAGUE AND CLUB)
 
@@ -237,6 +239,7 @@ def dataVis():
             x='Expenditure',
             y='Income',
             color='League',
+            symbol='League',
             hover_data=['Club', 'Season'],
             trendline="ols",
             trendline_scope="overall",
