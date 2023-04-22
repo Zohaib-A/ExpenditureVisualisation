@@ -110,6 +110,7 @@ def dataVis():
 
         st.markdown("---")
 
+        # Create a stacked bar chart, coloured by league, showing total expenditure by season
         figTotalExpenditure = px.bar(
             totalSpendingSeason,
             x="Season",
@@ -118,6 +119,7 @@ def dataVis():
             title="<b>Total Expenditure by Season</b>"
         )
 
+        # Add an annotation to the chart, highlighting when financial fair play was introduced, if the user uses System data
         if input_type == "Use system data":
             figTotalExpenditure.add_annotation(
                 x="11/12",
@@ -128,24 +130,30 @@ def dataVis():
                 ax=0,
                 ay=-150
             )
+
+        # Display the chart figTotalExpenditure
         st.plotly_chart(figTotalExpenditure)
 
         st.markdown("---")
 
+        # Add a slider to select position values
         pos_value = st.slider(
             'Select the position displayed:',
             min_value=1, max_value=20, step=1, value=1)
 
+        # Group the dataframe by club, season, league, and position to get the total expenditure for each club that finished in the slider position
         df_LeagueWinners = df_selection.groupby(['Club', 'Season', 'League', 'Position'])[
             'Expenditure'].sum().reset_index()
-
         df_LeagueWinners = df_LeagueWinners[df_LeagueWinners['Position'] == pos_value]
 
+        # Sort dataframe by season in ascending order
         df_LeagueWinners = df_LeagueWinners.sort_values(
             by="Season", ascending=True)
 
+        # Create another two column layout
         left_column2, right_column2 = st.columns(2)
 
+        # Create a bar chart showing the money spent by clubs who finished in the slider position
         figLeagueWinners = px.bar(
             df_LeagueWinners,
             hover_data=['Club'],
@@ -156,9 +164,11 @@ def dataVis():
                 position=pos_value)
         )
 
+        # Display bar chart in the left column
         with left_column2:
             st.plotly_chart(figLeagueWinners)
 
+        # Display the manipulated data frame in the right column
         with right_column2:
             df_LeagueWinners
 
