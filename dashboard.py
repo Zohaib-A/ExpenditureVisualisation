@@ -12,7 +12,6 @@ st.set_page_config(page_title="Expenditure Dashboard",
 st.title(":soccer: Football Expenditure Dashboard")
 st.markdown("##")
 
-
 # FILTERS AND NAVIGATION
 
 
@@ -83,7 +82,6 @@ def dataVis():
 
         figTotalExpenditure = px.bar(
             totalSpendingSeason,
-            # x = totalSpendingSeason.index,
             x="Season",
             y="Expenditure",
             color="League",
@@ -100,19 +98,24 @@ def dataVis():
                 ax=0,
                 ay=-150
             )
-
         st.plotly_chart(figTotalExpenditure)
+
+        st.markdown("---")
 
         pos_value = st.slider(
             'Select the position displayed:',
             min_value=1, max_value=20, step=1, value=1)
+
         df_LeagueWinners = df_selection.groupby(['Club', 'Season', 'League', 'Position'])[
             'Expenditure'].sum().reset_index()
+
         df_LeagueWinners = df_LeagueWinners[df_LeagueWinners['Position'] == pos_value]
+
         df_LeagueWinners = df_LeagueWinners.sort_values(
             by="Season", ascending=True)
 
         left_column2, right_column2 = st.columns(2)
+
         figLeagueWinners = px.bar(
             df_LeagueWinners,
             hover_data=['Club'],
@@ -137,16 +140,15 @@ def dataVis():
         topClubExpenditure = (df_selection.groupby(by=["Club"]).sum())
         topClubExpenditure['Money Spent Per Point'] = topClubExpenditure['Expenditure'] / \
             topClubExpenditure['Points']
+        
+        style_options = ["Balance", "Expenditure", "Income"]
 
         with st.columns(2)[0]:
             slider_value = st.slider(
                 'Select the number of clubs you would like to see displayed:',
                 min_value=0, max_value=215, step=1, value=20)
-
-        style_options = ["Balance", "Expenditure", "Income"]
-        with st.columns(2)[0]:
             style_selected = st.selectbox(
-                "View Balance, Expenditure or Income: ", options=style_options)
+                "View Balance, Expenditure or Income: ", options=style_options)            
 
         st.markdown("---")
 
@@ -178,8 +180,6 @@ def dataVis():
             st.plotly_chart(figHeatmap)
 
         st.markdown("---")
-        # position_slider = st.slider(
-        #     "Select range of league positions", value=[1, 20], max_value=20, min_value=1)
 
         left_column2, right_column2 = st.columns(2)
 
@@ -238,13 +238,17 @@ def dataVis():
             df_selection,
             x='Expenditure',
             y='Income',
-            color='League',
+            color='Points',
             symbol='League',
-            hover_data=['Club', 'Season'],
+            color_continuous_scale=px.colors.sequential.Cividis_r,
+            hover_data=['Club', 'Season', 'Position'],
             trendline="ols",
             trendline_scope="overall",
             title="Expenditure against Income")
         left_column3, right_column3 = st.columns(2)
+
+        figClubExpInc.update_traces(showlegend=False)
+
         with left_column3:
             st.plotly_chart(figClubExpInc)
 
@@ -300,7 +304,7 @@ def dataVis():
 
         else:
             figLeagueExpenditureByYear.update_xaxes(
-                visible=False, fixedrange=True)
+                visible=True, fixedrange=True, tickvals=["11/12"])
             figLeagueExpenditureByYear.update_yaxes(
                 visible=False, fixedrange=True)
             figLeagueExpenditureByYear.update_layout(
@@ -367,9 +371,11 @@ def main():
     global df, df2, input_type
     transfer_data_template = ["Club", "Season", "Expenditure",
                               "Arrivals", "Income", "Departures", "Balance", "League"]
+    transfer_data_template = [word.lower() for word in transfer_data_template]
 
     league_data_template = ["Position", "Club", "Played", "Wins",
                             "Draws", "Losses", "Goals", "GD", "Points", "Season", "League"]
+    league_data_template = [word.lower() for word in league_data_template]
 
     input_type = st.radio("Select whether you would like to enter your own data or use system data:", [
         "Use own data", "Use system data"])
@@ -384,8 +390,8 @@ def main():
                 df = pd.read_csv(url)
                 df2 = pd.read_csv(url2)
                 st.write(df.head(), df2.head())
-                url_column = list(df.columns)
-                url2_column = list(df2.columns)
+                url_column = [word.lower() for word in list(df.columns)]
+                url2_column = [word.lower() for word in list(df2.columns)]
                 if (url_column == transfer_data_template) & (url2_column == league_data_template):
                     st.title("Data valid")
                     df = pd.merge(df, df2, on=['Club', 'Season', 'League'])
