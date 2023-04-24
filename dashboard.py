@@ -173,30 +173,43 @@ def dataVis():
             df_LeagueWinners
 
     # CLUB PAGE DASHBOARD
-
+    # Check if the selected option is "Club"
     if selected == "Club":
+
+        # Set the page title to club data
         st.title(f"{selected} data")
 
+        # Group the data frame by "Club" and calculate the total for each column
         topClubExpenditure = (df_selection.groupby(by=["Club"]).sum())
+
+        # Calculate money spent per point by dividing expenditure by the points total
         topClubExpenditure['Money Spent Per Point'] = topClubExpenditure['Expenditure'] / \
             topClubExpenditure['Points']
 
+        # Set list of options for the user for the drop down menu
         style_options = ["Balance", "Expenditure", "Income"]
 
+        # Create a two column layout, having the items within the "with" statement on the left side of the layout
         with st.columns(2)[0]:
+            # Create a slider widget to ask the user how many clubs should be displayed, default value of ,with a minimum value of 0, maximum 215, incrementing in steps of 1.
             slider_value = st.slider(
                 'Select the number of clubs you would like to see displayed:',
                 min_value=0, max_value=215, step=1, value=20)
+            # Create a drop down menu which asks the user what data they would like to use from the "style_options" list defined above.
+            # Default value set to "Balance"
             style_selected = st.selectbox(
                 "View Balance, Expenditure or Income: ", options=style_options)
 
         st.markdown("---")
 
+        # Create a two column layout
         left_column, right_column = st.columns(2)
 
+        # Sort the data frame by the users selection from the drop down, and displays the amount of clubs selected by the slider
         with left_column:
             topClubBalance = topClubExpenditure.sort_values(
                 by=[style_selected], ascending=False).head(slider_value)
+            # Create a bar chart with the x axis of the clubs, the y axis of the selected drop down style
             figClubBalance = px.bar(
                 topClubBalance,
                 x=topClubBalance.index,
@@ -208,6 +221,8 @@ def dataVis():
             )
             st.plotly_chart(figClubBalance)
 
+        # Create a heatmap with the league position on the x axis and y axis with selected style
+        # Creates a histogram based on the amount of spending per range
         with right_column:
             figHeatmap = px.density_heatmap(
                 df_selection, x='Position',
@@ -221,12 +236,14 @@ def dataVis():
 
         st.markdown("---")
 
+        # Create a two column layout
         left_column2, right_column2 = st.columns(2)
 
         with left_column2:
+            # Sort data frame by the amount of money spent per point in descending order, with "slider_value" amount of clubs being shown
             topClubBalance = topClubExpenditure.sort_values(
                 by=['Money Spent Per Point'], ascending=False).head(slider_value)
-
+            # Create a bar chart with the x axis of the clubs, the y axis of amount of money spent per point
             figClubPts = px.bar(
                 topClubBalance,
                 x=topClubBalance.index,
@@ -239,26 +256,33 @@ def dataVis():
             st.plotly_chart(figClubPts)
 
         with right_column2:
+            # Create a drop down menu to allow the user to select whether they would like to see Results, Points or Goals, with Results as default option
             results_style_options = ["Results", "Points", "Goals"]
             results_style_selected = st.selectbox(
                 "View Results, Points or Goals For", options=results_style_options)
 
+            # Group the data frame by club and calculate total wins, draws, losses, points, expenditure, goals for and against
             clubResultsByYear = (
                 df_selection.groupby(['Club'])['Wins', 'Draws',
                                                'Losses', 'Points', 'Expenditure', 'GF', 'GA'].sum().reset_index()
             )
+
+            # Sort the data frame by total points, with slider_value amount of clubs being shown
             clubResultsByYear = clubResultsByYear.sort_values(
                 by=['Points'], ascending=False).head(slider_value)
 
+            # If the user selects "Results", create a line graph with club against "wins, draws, losses" with values of total games when the user hovers over a point
             if results_style_selected == "Results":
                 figClubResults = px.line(
-                    clubResultsByYear, x='Club', y=['Wins', 'Draws',
-                                                    'Losses'],
-                    title="Results by Club", labels={
+                    clubResultsByYear, x='Club',
+                    y=['Wins', 'Draws', 'Losses'],
+                    title="Results by Club",
+                    labels={
                         "value": "Games"
                     })
                 st.plotly_chart(figClubResults)
 
+            # If the user selects "Goals", create a line graph with club against "GF, GA" with values of total games when the user hovers over a point
             elif results_style_selected == "Goals":
                 figClubResults = px.line(
                     clubResultsByYear, x='Club', y=['GF', 'GA'],
@@ -267,6 +291,7 @@ def dataVis():
                     })
                 st.plotly_chart(figClubResults)
 
+            # If the user selects "Points", create a line graph with club against "Points"
             else:
                 figClubResults = px.line(
                     clubResultsByYear, x='Club', y=results_style_selected,
@@ -274,6 +299,10 @@ def dataVis():
                 st.plotly_chart(figClubResults)
 
         st.markdown("---")
+
+        # Create a scatterplot of all expenditure against income, coloured by points, with league symbols
+        # Hover data contains club, season and position
+        # Create a linear trendline for the overall data set
         figClubExpInc = px.scatter(
             df_selection,
             x='Expenditure',
@@ -285,13 +314,19 @@ def dataVis():
             trendline="ols",
             trendline_scope="overall",
             title="Expenditure against Income")
+
+        # Create a two column layout
         left_column3, right_column3 = st.columns(2)
 
+        # Hide the legend for scatterplot
         figClubExpInc.update_traces(showlegend=False)
 
+        # Plot the scatterplot
         with left_column3:
             st.plotly_chart(figClubExpInc)
 
+        # Calculate coefficient between expenditure and income and display.
+        # Create an expandable box which displays the definition of the Pearson Coefficient
         with right_column3:
             clubExpIncCoeff = np.corrcoef(
                 df_selection['Expenditure'], df_selection['Income'])[0, 1]
@@ -301,9 +336,12 @@ def dataVis():
             st.subheader(clubExpIncCoeff)
 
         st.markdown("---")
+
+        # Highlight the manipulated data used for majority of graphs on this page
         st.subheader("Data used for this page:")
         topClubExpenditure
 
+        # Create download data frame button as CSV
         topClubExpenditureCsv = topClubExpenditure.to_csv().encode('utf-8')
         st.download_button(
             "Download data as CSV",
