@@ -353,13 +353,17 @@ def dataVis():
 
     # LEAGUE DATA DASHBOARD
 
+    # Check if the selected option is "League"
     if selected == "League":
         st.title(f"You have selected {selected}")
+
+        # Group the data frame by League and Season, calculating the total expenditure, income and balance by each league per season
         leagueExpenditureByYear = (
             df_selection.groupby(['League', 'Season'])[
                 'Expenditure', 'Income', 'Balance'].sum().reset_index()
         )
 
+        # Create a line graph of the above data frame using plotly_express, with x axis of Season, y axis of expenditure, coloured in regards to league
         figLeagueExpenditureByYear = px.line(
             leagueExpenditureByYear,
             x="Season",
@@ -370,28 +374,40 @@ def dataVis():
             template="plotly_white"
         )
 
+        # Create a list of style options, Minimalistic (Tufte-inspired styling) or a standard line graph
         style_options = ["Minimalistic", "Detailed"]
         with st.columns(2)[0]:
+            # Create a drop down menu aligned to the left asking the user what type of graph they would like
             style_selected = st.selectbox(
                 "Minimalistic or Detailed charts: ", options=style_options)
+
+        # If the user selects detailed and is using system data, create a dashed line at season 11/12 and display graph
         if style_selected == "Detailed":
             if input_type == "Use system data":
                 figLeagueExpenditureByYear.add_vline(
                     x="11/12", line_width=3, line_dash="dash", line_color="green")
             st.plotly_chart(figLeagueExpenditureByYear)
 
+        # If the user sticks to a minimalistic graph:
         else:
+            # Update the x axis to be invisible and be fixed, showing just where 11/12 is for reference
             figLeagueExpenditureByYear.update_xaxes(
                 visible=True, fixedrange=True, tickvals=["11/12"])
+            # Update the y axis to be invisible and fixed
             figLeagueExpenditureByYear.update_yaxes(
                 visible=False, fixedrange=True)
+            # Hide the legend
             figLeagueExpenditureByYear.update_layout(
                 showlegend=False,
             )
+            # Display modified graph
             st.plotly_chart(figLeagueExpenditureByYear)
 
         st.markdown("---")
 
+        # Create a scatterplot of all expenditure against income, coloured by league, with league symbols too
+        # Hover data contains league and season
+        # Create a linear trendline for the overall data set
         figExpInc = px.scatter(
             leagueExpenditureByYear,
             x='Expenditure',
@@ -403,25 +419,31 @@ def dataVis():
             trendline_scope="overall",
             title="Expenditure against Income")
 
+        # Calculate coefficient between expenditure and income and display.
         expIncCoeff = np.corrcoef(
             leagueExpenditureByYear['Expenditure'], leagueExpenditureByYear['Income'])[0, 1]
 
         left_column, right_column = st.columns(2)
 
         with left_column:
+            # Display scatterplot
             st.plotly_chart(figExpInc)
 
         with right_column:
             st.subheader("Pearson Coefficient:")
+            # Create an expandable box which displays the definition of the Pearson Coefficient
             with st.expander('What is "Pearson Coefficient"?', expanded=False):
                 st.markdown(pearsonHelpText)
+            # Display the coefficient
             st.subheader(expIncCoeff)
 
         st.markdown("---")
 
+        # Highlight the manipulated data used for majority of graphs on this page
         st.subheader("Data used for this page:")
         leagueExpenditureByYear
 
+        # Create download data frame button as CSV
         leagueExpenditureByYearCsv = leagueExpenditureByYear.to_csv().encode('utf-8')
         st.download_button(
             "Download data as CSV",
@@ -431,11 +453,18 @@ def dataVis():
             key='download-csv'
         )
 
+    # Check if the selected option is "Data"
     if selected == "Data":
+        # Create a header
         st.header("Data used for this project:")
-        st.text("Data sourced from TransferMarkt")
+        # Provide text from where data was sourced from
+        st.markdown(
+            "Data sourced from [TransferMarkt](https://www.transfermarkt.co.uk/premier-league/einnahmenausgaben/wettbewerb/GB1)")
+        # Display the data frame used for the majority of the project
         df_selection
+        # Encode data frame as CSV in utf-8
         dfCsv = df_selection.to_csv().encode('utf-8')
+        # Create download data frame button as CSV
         st.download_button(
             "Download data as CSV",
             dfCsv,
@@ -444,9 +473,13 @@ def dataVis():
             key='download-csv'
         )
 
+# Define main initialising function
+
 
 def main():
     global df, df2, input_type
+
+    # Define templates for transfer and league data to be imported
     transfer_data_template = ["Club", "Season", "Expenditure",
                               "Arrivals", "Income", "Departures", "Balance", "League"]
     transfer_data_template = [word.lower() for word in transfer_data_template]
@@ -455,47 +488,65 @@ def main():
                             "Draws", "Losses", "Goals", "GD", "Points", "Season", "League"]
     league_data_template = [word.lower() for word in league_data_template]
 
+    # Create a radio button allowing user to use their own data or select system data
     input_type = st.radio("Select whether you would like to enter your own data or use system data:", [
         "Use own data", "Use system data"])
 
     if input_type == "Use own data":
         try:
+            # Provide the user with information as to what the format of the data should be
             st.write("For the transfer expenditure data, the required columns are: Club, Season, Expenditure, Arrivals, Income, Departures, Balance, League")
+            # Allow the user to input data
             url = st.text_input("Enter transfer expenditure data")
+            # Provide the user with information as to what the format of the data should be
             st.write("For the league table data, the required columns are: Position, Club, Played, Wins, Draws, Losses, Goals, GD, Points, Season, League")
+            # Allow the user to input data
             url2 = st.text_input("Enter league data")
+
+            # Check if both URLs are provided and then append them to a data frame
             if url and url2:
                 df = pd.read_csv(url)
                 df2 = pd.read_csv(url2)
                 st.write(df.head(), df2.head())
+                # Convert column names to lower case
                 url_column = [word.lower() for word in list(df.columns)]
                 url2_column = [word.lower() for word in list(df2.columns)]
+                # Check if the column format is the same as the template for both URLs
                 if (url_column == transfer_data_template) & (url2_column == league_data_template):
                     st.title("Data valid")
+                    # Merge the data based on club, season or league
                     df = pd.merge(df, df2, on=['Club', 'Season', 'League'])
                     df[['GF', 'GA']] = df['Goals'].str.split(':', expand=True)
                     df[['GF', 'GA']] = df[['GF', 'GA']].astype(int)
+                    # Call dataVis to display visualisations
                     dataVis()
                 else:
                     st.title("Data invalid")
         except:
+            # If URL is invalid, instead of erroring out, the user will be presented with this message
             st.title("URL Invalid")
 
+    # Check if user selects system data
     elif input_type == "Use system data":
+        # Define the two data frames, transfer and league datasets
         df = pd.read_csv(
             'https://raw.githubusercontent.com/Zohaib-A/footballData/main/TransferExpenditure.csv')
         df2 = pd.read_csv(
             'https://raw.githubusercontent.com/Zohaib-A/footballData/main/league.csv')
 
+        # Merge the data based on club, season or league
         df = pd.merge(df, df2, on=['Club', 'Season', 'League'])
         df[['GF', 'GA']] = df['Goals'].str.split(':', expand=True)
         df[['GF', 'GA']] = df[['GF', 'GA']].astype(int)
+        # Call dataVis to display visualisations
         dataVis()
 
 
+# Running the main function
 if __name__ == "__main__":
     main()
 
+# Hiding streamlit header and footer
 hide_streamlit_style = """
         <style>
         #MainMenu {visibility: hidden;}
