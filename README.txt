@@ -3,8 +3,13 @@ Project has been hosted on the web and can be accessed via this link:
 https://expenditure-visualisation-zohaib-a.streamlit.app/
 
 The data sources being used in this project can be found via:
-https://github.com/Zohaib-A/footballData/blob/main/TransferExpenditure.csv
-https://github.com/Zohaib-A/footballData/blob/main/league.csv
+https://raw.githubusercontent.com/Zohaib-A/footballData/main/TransferExpenditure.csv
+https://raw.githubusercontent.com/Zohaib-A/footballData/main/league.csv
+
+Further testing can be done using these dummy data links:
+https://raw.githubusercontent.com/Zohaib-A/footballData/main/archive/TransferExpenditureTest.csv
+https://raw.githubusercontent.com/Zohaib-A/footballData/main/archive/leagueTest.csv
+
 
 FILE STRUCTURE:
 The main folder contains dashboard.py, which is the main bulk of the web application.
