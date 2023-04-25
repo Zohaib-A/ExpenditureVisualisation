@@ -554,3 +554,7 @@ hide_streamlit_style = """
         </style>
         """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+# References:
+# https://youtu.be/hEPoto5xp3k (Coding Is Fun 2022): This source was used to create the navigation pane used to explore the web application
+# https://youtu.be/Sb0A9i6d320 (Coding Is Fun 2021): This source was used to provide the skeleton for the web application and assist with learning Streamlit
